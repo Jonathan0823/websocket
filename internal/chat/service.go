@@ -1,14 +1,14 @@
 package chat
 
-type AuthService interface {
+type ChatService interface {
 }
 
-type authservice struct {
-	repo AuthRepository
+type chatservice struct {
+	repo ChatRepository
 }
 
-func NewAuthService(repo AuthRepository) AuthService {
-	return &authservice{
+func NewChatService(repo ChatRepository) ChatService {
+	return &chatservice{
 		repo: repo,
 	}
 }

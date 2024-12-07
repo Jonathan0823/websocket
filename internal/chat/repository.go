@@ -2,15 +2,15 @@ package chat
 
 import "database/sql"
 
-type AuthRepository interface {
+type ChatRepository interface {
 }
 
-type authrepository struct {
+type chatrepository struct {
 	db *sql.DB
 }
 
-func NewAuthRepository(db *sql.DB) AuthRepository {
-	return &authrepository{
+func NewChatRepository(db *sql.DB) ChatRepository {
+	return &chatrepository{
 		db: db,
 	}
 }

@@ -1,11 +1,11 @@
 package chat
 
-type authhandler struct {
-	service AuthService
+type chathandler struct {
+	service ChatService
 }
 
-func NewAuthHandler(service AuthService) *authhandler {
-	return &authhandler{
+func NewChatHandler(service ChatService) *chathandler {
+	return &chathandler{
 		service: service,
 	}
 }
