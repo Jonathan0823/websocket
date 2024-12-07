@@ -126,6 +126,16 @@ func (s *service) AutoMigrate() {
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);
+
+		CREATE TABLE IF NOT EXISTS chats (
+			id SERIAL PRIMARY KEY,
+			user_id INT NOT NULL,
+			chat_room_id INT NOT NULL,
+			message TEXT NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users (id)
+		);
 	`)
 	if err != nil {
 		log.Fatal(err)
