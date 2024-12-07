@@ -11,7 +11,6 @@ import (
 type AuthRepository interface {
 	Register(user models.User) error
 	Login(user models.User) (string, error)
-	Validate(user models.User) bool
 }
 
 type authrepository struct {
@@ -25,7 +24,11 @@ func NewAuthRepository(db *sql.DB) *authrepository {
 }
 
 func (r *authrepository) Register(user models.User) error {
-	existingUser := r.IsUserExists(user)
+	var existingUser bool
+	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)", user.Email).Scan(&existingUser)
+	if err != nil {
+		return err
+	}
 	if existingUser {
 		return errors.New("user already exists")
 	}
@@ -43,20 +46,16 @@ func (r *authrepository) Register(user models.User) error {
 	return nil
 }
 
-func (r *authrepository) Validate(user models.User) bool {
-	var dbUser models.User
-	err := r.db.QueryRow("SELECT * FROM users WHERE email=$1", user.Email).Scan(&dbUser.ID, &dbUser.Username, &dbUser.Email, &dbUser.Password)
+func (r *authrepository) Login(user models.User) (string, error) {
+	var hashedPassword string
+	err := r.db.QueryRow("SELECT password FROM users WHERE email=$1", user.Email).Scan(&hashedPassword)
 	if err != nil {
-		return false
+		return "", err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
-	return err == nil
-}
-
-func (r *authrepository) Login(user models.User) (string, error) {
-	if !r.Validate(user) {
-		return "", errors.New("invalid credentials")
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password))
+	if err != nil {
+		return "", err
 	}
 
 	token, err := GenerateJWT(user.Email)
@@ -65,10 +64,4 @@ func (r *authrepository) Login(user models.User) (string, error) {
 	}
 
 	return token, nil
-}
-
-func (r *authrepository) IsUserExists(user models.User) bool {
-	var dbUser models.User
-	err := r.db.QueryRow("SELECT * FROM users WHERE email=$1", user.Email).Scan(&dbUser.ID, &dbUser.Username, &dbUser.Email, &dbUser.Password)
-	return err == nil
 }
