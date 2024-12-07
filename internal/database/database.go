@@ -22,6 +22,7 @@ type Service interface {
 	// Close terminates the database connection.
 	// It returns an error if the connection cannot be closed.
 	Close() error
+	GetDB() *sql.DB
 }
 
 type service struct {
@@ -30,11 +31,6 @@ type service struct {
 
 var (
 	database   = os.Getenv("BLUEPRINT_DB_DATABASE")
-	password   = os.Getenv("BLUEPRINT_DB_PASSWORD")
-	username   = os.Getenv("BLUEPRINT_DB_USERNAME")
-	port       = os.Getenv("BLUEPRINT_DB_PORT")
-	host       = os.Getenv("BLUEPRINT_DB_HOST")
-	schema     = os.Getenv("BLUEPRINT_DB_SCHEMA")
 	dbInstance *service
 )
 
@@ -43,14 +39,16 @@ func New() Service {
 	if dbInstance != nil {
 		return dbInstance
 	}
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, schema)
-	db, err := sql.Open("pgx", connStr)
+	db, err := sql.Open("pgx", database)
 	if err != nil {
 		log.Fatal(err)
 	}
 	dbInstance = &service{
 		db: db,
 	}
+
+	dbInstance.AutoMigrate()
+
 	return dbInstance
 }
 
@@ -112,4 +110,24 @@ func (s *service) Health() map[string]string {
 func (s *service) Close() error {
 	log.Printf("Disconnected from database: %s", database)
 	return s.db.Close()
+}
+
+func (s *service) GetDB() *sql.DB {
+	return s.db
+}
+
+func (s *service) AutoMigrate() {
+	_, err := s.db.Exec(`
+		CREATE TABLE IF NOT EXISTS users (
+			id SERIAL PRIMARY KEY,
+			username VARCHAR(50) NOT NULL,
+			email VARCHAR(100) NOT NULL,
+			password VARCHAR(100) NOT NULL,
+			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		);
+	`)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
