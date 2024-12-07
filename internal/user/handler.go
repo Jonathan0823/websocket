@@ -1,11 +1,11 @@
 package user
 
-type authhandler struct {
-	service AuthService
+type userhandler struct {
+	service UserService
 }
 
-func NewAuthHandler(service AuthService) *authhandler {
-	return &authhandler{
+func UserHandler(service UserService) *userhandler {
+	return &userhandler{
 		service: service,
 	}
 }

@@ -2,15 +2,15 @@ package user
 
 import "database/sql"
 
-type AuthRepository interface {
+type UserRepository interface {
 }
 
-type authrepository struct {
+type userrepository struct {
 	db *sql.DB
 }
 
-func NewAuthRepository(db *sql.DB) AuthRepository {
-	return &authrepository{
+func NewUserRepository(db *sql.DB) UserRepository {
+	return &userrepository{
 		db: db,
 	}
 }

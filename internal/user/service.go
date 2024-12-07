@@ -1,14 +1,14 @@
 package user
 
-type AuthService interface {
+type UserService interface {
 }
 
-type authservice struct {
-	repo AuthRepository
+type userservice struct {
+	repo UserRepository
 }
 
-func NewAuthService(repo AuthRepository) AuthService {
-	return &authservice{
+func NewUserService(repo UserRepository) UserService {
+	return &userservice{
 		repo: repo,
 	}
 }
