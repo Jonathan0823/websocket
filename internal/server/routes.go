@@ -3,6 +3,8 @@ package server
 import (
 	"net/http"
 	"websocket/internal/auth"
+	"websocket/internal/middleware"
+	"websocket/internal/user"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,10 +21,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}))
 
 	authRepo := auth.NewAuthRepository(s.db.GetDB())
+	userRepo := user.NewUserRepository(s.db.GetDB())
 
 	authService := auth.NewAuthService(authRepo)
+	userService := user.NewUserService(userRepo)
 
 	authHandler := auth.NewAuthHandler(authService)
+	userHandler := user.NewUserHandler(userService)
 
 	r.GET("/", s.HelloWorldHandler)
 
@@ -32,6 +37,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 	{
 		authGroup.POST("/register", authHandler.Register)
 		authGroup.POST("/login", authHandler.Login)
+	}
+
+	userGroup := r.Group("/user").Use(middleware.JWTMiddleware(authService))
+	{
+		userGroup.GET("/", userHandler.GetUser)
+		userGroup.GET("/all", userHandler.GetUsers)
 	}
 
 	return r

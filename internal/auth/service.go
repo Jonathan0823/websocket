@@ -11,6 +11,7 @@ import (
 type AuthService interface {
 	Register(user models.User) error
 	Login(user models.User) (string, error)
+	ValidateJWT(tokenString string) (jwt.MapClaims, error)
 }
 
 type authservice struct {
