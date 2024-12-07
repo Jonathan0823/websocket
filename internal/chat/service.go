@@ -7,7 +7,7 @@ type chatservice struct {
 	repo ChatRepository
 }
 
-func NewChatService(repo ChatRepository) ChatService {
+func NewChatService(repo ChatRepository) *chatservice {
 	return &chatservice{
 		repo: repo,
 	}
