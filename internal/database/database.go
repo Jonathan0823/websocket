@@ -128,7 +128,7 @@ func (s *service) AutoMigrate() {
 		);
 
 		CREATE TABLE IF NOT EXISTS chat_rooms (
-			id SERIAL PRIMARY KEY,
+			id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
 			name VARCHAR(50) NOT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -5,6 +5,7 @@ import (
 	"websocket/internal/auth"
 	"websocket/internal/middleware"
 	"websocket/internal/user"
+	"websocket/internal/ws"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true, // Enable cookies/auth
 	}))
+
+	hub := ws.NewHub()
+	wsHandler := ws.NewWsHandler(hub)
 
 	authRepo := auth.NewAuthRepository(s.db.GetDB())
 	userRepo := user.NewUserRepository(s.db.GetDB())
@@ -43,6 +47,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 	{
 		userGroup.GET("/", userHandler.GetUser)
 		userGroup.GET("/all", userHandler.GetUsers)
+	}
+
+	wsGroup := r.Group("/ws")
+	{
+		wsGroup.POST("/room", wsHandler.CreateRoom)
 	}
 
 	return r
