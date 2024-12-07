@@ -23,6 +23,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	hub := ws.NewHub()
 	wsHandler := ws.NewWsHandler(hub)
+	go hub.Run()
 
 	authRepo := auth.NewAuthRepository(s.db.GetDB())
 	userRepo := user.NewUserRepository(s.db.GetDB())
