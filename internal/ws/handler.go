@@ -77,4 +77,8 @@ func (h *wshandler) HandleWs(c *gin.Context) {
 		ChatRoomId: roomId,
 		UserId: clientId,
 	}		
+
+	h.hub.Register <- client
+
+	h.hub.Broadcast <- m
 }
