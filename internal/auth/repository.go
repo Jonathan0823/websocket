@@ -50,12 +50,12 @@ func (r *authrepository) Login(user models.User) (string, error) {
 	var hashedPassword string
 	err := r.db.QueryRow("SELECT password FROM users WHERE email=$1", user.Email).Scan(&hashedPassword)
 	if err != nil {
-		return "", err
+		return "", errors.New("user does not exist")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password))
 	if err != nil {
-		return "", err
+		return "", errors.New("invalid credentials")
 	}
 
 	token, err := GenerateJWT(user.Email)
