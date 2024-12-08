@@ -5,7 +5,6 @@ import (
 	"websocket/internal/models"
 
 	"github.com/gin-gonic/gin"
-	"strconv"
 	"github.com/gorilla/websocket"
 )
 
@@ -31,24 +30,24 @@ func (h *wshandler) CreateRoom(c *gin.Context) {
 		return
 	}
 
-	h.hub.Rooms[req.ID] = &models.ChatRoom{
+	h.hub.Rooms[req.ID] = &ChatRoom{
 		ID:     req.ID,
 		Name:   req.Name,
-		Client: make(map[*models.Client]bool),
+		Client: make(map[*Client]bool),
 	}
 
 	c.JSON(http.StatusCreated, req)
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize: 1024,
+	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
 }
 
-func (h *wshandler) HandleWs(c *gin.Context) {
+func (h *wshandler) JoinRoom(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -56,29 +55,27 @@ func (h *wshandler) HandleWs(c *gin.Context) {
 	}
 
 	clientIdStr := c.Query("userId")
-	clientId, err := strconv.Atoi(clientIdStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid userId"})
-		return
-	}
 	roomId := c.Query("roomId")
 	username := c.Query("username")
 
-	client := &models.Client{
-		Conn:    conn,
-		Message: make(chan *models.Chat, 10),
-		ID:      clientIdStr,
-		RoomId:  roomId,
+	client := &Client{
+		Conn:     conn,
+		Message:  make(chan *models.Chat, 10),
+		ID:       clientIdStr,
+		RoomId:   roomId,
 		Username: username,
 	}
 
-	m:= &models.Chat{
-		Message:  "New user joined",
+	m := &models.Chat{
+		Message:    "New user joined",
 		ChatRoomId: roomId,
-		UserId: clientId,
-	}		
+		UserId:     clientIdStr,
+	}
 
 	h.hub.Register <- client
 
 	h.hub.Broadcast <- m
+
+	go client.WriteMessage()
+	client.ReadMessage(h.hub)
 }

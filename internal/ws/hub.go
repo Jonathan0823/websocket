@@ -1,19 +1,23 @@
 package ws
 
-import "websocket/internal/models"
+import (
+	"websocket/internal/models"
+
+	"github.com/gorilla/websocket"
+)
 
 type Hub struct {
-	Rooms      map[string]*models.ChatRoom
-	Register   chan *models.Client
-	Unregister chan *models.Client
+	Rooms      map[string]*ChatRoom
+	Register   chan *Client
+	Unregister chan *Client
 	Broadcast  chan *models.Chat
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		Rooms:      make(map[string]*models.ChatRoom),
-		Register:   make(chan *models.Client),
-		Unregister: make(chan *models.Client),
+		Rooms:      make(map[string]*ChatRoom),
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
 		Broadcast:  make(chan *models.Chat),
 	}
 }
@@ -56,5 +60,41 @@ func (h *Hub) Run() {
 				}
 			}
 		}
+	}
+}
+
+func (c *Client) WriteMessage() {
+	defer func() {
+		c.Conn.Close()
+	}()
+
+	for message := range c.Message {
+		if err := c.Conn.WriteJSON(message); err != nil {
+			return
+		}
+	}
+}
+
+func (c *Client) ReadMessage(hub *Hub) {
+	defer func() {
+		c.Conn.Close()
+	}()
+
+	for {
+		_, message, err := c.Conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				return
+			}
+			break
+		}
+
+		msg := &models.Chat{
+			UserId:     c.ID,
+			ChatRoomId: c.RoomId,
+			Message:    string(message),
+		}
+
+		hub.Broadcast <- msg
 	}
 }
