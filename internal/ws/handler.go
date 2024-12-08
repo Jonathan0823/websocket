@@ -79,3 +79,27 @@ func (h *wshandler) JoinRoom(c *gin.Context) {
 	go client.WriteMessage()
 	client.ReadMessage(h.hub)
 }
+
+func (h *wshandler) GetRooms(c *gin.Context) {
+	rooms := make([]*RoomReq, 0)
+	for _, room := range h.hub.Rooms {
+		rooms = append(rooms, &RoomReq{
+			ID:   room.ID,
+			Name: room.Name,
+		})
+	}
+
+	c.JSON(http.StatusOK, rooms)
+}
+
+func (h *wshandler) GetClients(c *gin.Context) {
+	roomId := c.Param("roomId")
+	clients := make([]string, 0)
+	if room, ok := h.hub.Rooms[roomId]; ok {
+		for client := range room.Client {
+			clients = append(clients, client.Username)
+		}
+	}
+
+	c.JSON(http.StatusOK, clients)
+}
