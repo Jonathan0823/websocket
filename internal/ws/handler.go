@@ -54,8 +54,8 @@ func (h *wshandler) JoinRoom(c *gin.Context) {
 		return
 	}
 
+	roomId := c.Param("roomId")
 	clientIdStr := c.Query("userId")
-	roomId := c.Query("roomId")
 	username := c.Query("username")
 
 	client := &Client{

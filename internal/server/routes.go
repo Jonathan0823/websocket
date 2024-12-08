@@ -53,6 +53,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	wsGroup := r.Group("/ws")
 	{
 		wsGroup.POST("/room", wsHandler.CreateRoom)
+		wsGroup.GET("/join/:roomId", wsHandler.JoinRoom)
 	}
 
 	return r
