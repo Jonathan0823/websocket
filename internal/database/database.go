@@ -137,7 +137,7 @@ func (s *service) AutoMigrate() {
 		CREATE TABLE IF NOT EXISTS chats (
 			id SERIAL PRIMARY KEY,
 			user_id INT NOT NULL,
-			chat_room_id INT NOT NULL,
+			chat_room_id VARCHAR(36) NOT NULL,
 			message TEXT NOT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
